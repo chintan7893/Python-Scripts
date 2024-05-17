@@ -1,0 +1,33 @@
+from netmiko import ConnectHandler
+import getpass
+
+username = input ('Enter your SSH username: ')
+password = getpass.getpass('Please enter the password: ')
+
+with open (r"C:\\Users\\XYZ\\Device-IP-List.txt") as f:
+    devices = f.read().splitlines()
+print (devices)
+all_devices=list()
+for router in devices:
+    print ('Connecting to device ---> ' + router)
+    ip_address = router
+    mikrotik_devices = {
+        'device_type': 'mikrotik_routeros',
+        'ip' : ip_address,
+        'username': username,
+        'password': password,
+        'port': 1022,
+    }
+    
+    all_devices.append(mikrotik_devices)
+
+config_commands=[
+    '/user/remove admin',
+]
+
+for devices in all_devices:
+    net_connect = ConnectHandler(**devices)
+    net_connect.enable()
+    output = net_connect.send_config_set(config_commands) + "\n"
+    print (output)
+    net_connect.disconnect()
