@@ -1,0 +1,39 @@
+from netmiko import ConnectHandler
+import getpass
+import time
+
+passwd = getpass.getpass('Please enter the password: ')
+
+my_devices = ['10.10.10.1', '10.20.20.1'] #Update the IP addresses
+device_list = list() #create an empty list to use it later
+
+for device_ip in my_devices:
+    device = {
+        "device_type": "cisco_nxos",
+        "host": device_ip,
+        "username": "cisco",
+        "password": passwd, # Log in password from getpass
+    }
+    device_list.append(device)
+
+print(device_list)
+
+config_commands = [
+'ip access-list VTY_Access', #Name of the Access-List
+'10 permit ip 10.1.2.0 0.0.0.255 any', #update IPs according to your IP scheme
+'20 permit ip 10.20.20.1/32 any',
+'30 permit ip 10.30.30.1/32 any',
+'end',
+'wr',
+]
+
+
+for each_device in device_list:
+    connection = ConnectHandler(**each_device)
+    connection.enable()
+    print(f'Connecting to {each_device["host"]}')
+    output = connection.send_config_set(config_commands)
+    print(output)
+    time.sleep(10)
+    print(f'Closing Connection on {each_device["host"]}')
+    connection.disconnect()
