@@ -1,0 +1,28 @@
+from netmiko import ConnectHandler
+import getpass
+
+passwd = getpass.getpass('Please enter the password: ')
+
+my_devices = ['10.10.10.1', '10.20.20.1'] #Update the IP addresses
+device_list = list() #create an empty to use it later
+
+for device_ip in my_devices:
+    device = {
+        "device_type": "cisco_nxos",
+        "host": device_ip,
+        "username": "cisco",
+        "password": passwd, # Log in password from getpass
+    }
+    device_list.append(device)
+
+print(device_list)
+
+for each_device in device_list:
+    connection = ConnectHandler(**each_device)
+    connection.enable()
+    print(f'Connecting to {each_device["host"]}')
+    output = connection.send_command ("show interface description")
+    print(output)
+
+    print(f'Closing Connection on {each_device["host"]}')
+    connection.disconnect()
