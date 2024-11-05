@@ -1,0 +1,48 @@
+from netmiko.exceptions import NetmikoTimeoutException
+from netmiko import ConnectHandler
+import getpass
+import re
+
+username = input ('Enter your SSH username: ')
+password = getpass.getpass('Please enter the password: ')
+
+
+with open (r"C:\\Users\\XYZ\\nameofthefile.txt") as f:
+    devices = f.read().splitlines()
+print (devices)
+all_devices=list()
+for router in devices:
+    print ('Connecting to device ---> ' + router)
+    ip_address = router
+    mikrotik_devices = {
+        'device_type': 'mikrotik_routeros',
+        'ip' : ip_address,
+        'username': username,
+        'password': password,
+        'port': 22, #Change the port number if you're using different port for SSH. 
+    }
+    all_devices.append(mikrotik_devices)
+
+config_commands=[
+    '/system identity print',
+    '/system resource print',
+]
+
+pattern=r'name: (.+)'
+
+for devices in all_devices:
+    try:
+        net_connect = ConnectHandler(**devices)
+        net_connect.enable()
+        output = net_connect.send_config_set(config_commands) + "\n"
+        match= re.search (pattern,output)
+        if match:
+            print (match.group(1))
+        for line in output.split('\n'):
+            if 'version' in line:
+                version= line.split(":")[1].strip()
+                print(version)
+        net_connect.disconnect()
+    except NetmikoTimeoutException as e:
+        print(devices)
+        continue  
